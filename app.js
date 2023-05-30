@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const nedb = require('nedb-promise');
+const { uuid } = require('uuidv4');
 const db = {}
 db.menu = new nedb({ filename: './databases/menu.db', autoload: true });
 db.users = new nedb({ filename: './databases/users.db', autoload: true });
@@ -20,14 +21,29 @@ app.get('/api/menu', async (req, res) => {
     }
 });
 
-app.post('/api/order', (req, res) => {
-
+app.post('/api/order', async (req, res) => {
+    // Middleware för auth
+    const { productName, price, quantity } = req.body;
+    const order = {
+        productName: productName,
+        price: price,
+        quantity: quantity,
+        orderNr: uuid()
+    }
+    try {
+        await db.orders.insert(order);
+        res.json({ success: true, message: 'Order placed successfully', eta: 20, orderNr: order.orderNr });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Could not fetch from database', code: err.code });
+    }
 });
 
 app.post('/api/user/signup', async (req, res) => {
+    // Middleware för att validera input
     const user = {
         username: req.body.username,
-        password: req.body.password
+        password: req.body.password,
+        userId: uuid()
     }
     try {
         const newUser = await db.users.insert(user);
@@ -35,19 +51,34 @@ app.post('/api/user/signup', async (req, res) => {
     } catch (err) {
         res.status(500).json({ success: false, message: 'Error occurred while creating user', code: err.code });
     }
-
 });
 
-app.post('/api/user/login', (req, res) => {
-
+app.post('/api/user/login', async (req, res) => {
+    // Middleware för auth return userId
+    const { username, password, user } = req.body;
+    try {
+        // Vad skickar man med när anv skickas in? Behöver man try efter middleware som gör validering?
+        res.json({ success: true, user: user });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error occurred while logging in user', code: err.code });
+    }
 });
 
-app.get('/api/orderhistory/:id', (req, res) =>{
-
+app.get('/api/order/history/:id',async (req, res) => {
+    try {
+        
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error occurred while getting order', code: err.code });
+    }
 });
 
-app.get('/api/order/status/:orderid', (req, res) => {
-
+app.get('/api/order/status/:orderid', async (req, res) => {
+    // Middleware som räknar ut hur många min kvar 
+    try {
+        
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error occurred while getting status of order', code: err.code });
+    }
 });
 
 app.listen(port, () => {
