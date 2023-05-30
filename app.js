@@ -30,14 +30,17 @@ app.get("/api/menu", async (req, res) => {
 app.post("/api/order", async (req, res) => {
   // Middleware för auth
   //Om inloggad få med userId
+  
   const { productName, price, quantity, userId } = req.body;
   const order = {
     productName: productName,
     price: price,
     quantity: quantity,
     orderNr: uuid(),
-    orderTime: new Date()
+    orderTime: new Date(),
+    deliveryTime: new Date(this.orderTime.getTime() + 20*60000) // 20 minutes from order time
   };
+
   if (userId) {
     order.userId = userId;
   }
@@ -117,7 +120,7 @@ app.get("/api/user/:id/history", async (req, res) => {
 app.get("/api/order/status/:orderid", orderStatus, async (req, res) => {
   // Middleware som räknar ut hur många min kvar returnerar timeLeft
   try {
-    res.json({ success: true, timeLeft: timeLeft });
+    res.json({ success: true, timeLeft: res.locals.timeLeft });
   } catch (err) {
     res
       .status(500)
