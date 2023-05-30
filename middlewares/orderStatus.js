@@ -1,4 +1,4 @@
-const { db } = require('../app');
+const db = require('../app');
 
 async function orderStatus(req, res, next) {
     const orderId = req.params.orderid;

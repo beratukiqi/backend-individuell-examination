@@ -3,6 +3,7 @@ const app = express();
 const nedb = require("nedb-promise");
 const { uuid } = require("uuidv4");
 const { orderStatus } = require('./middlewares/orderStatus');
+const { priceCheck } = require('./middlewares/priceCheck');
 const db = {};
 db.menu = new nedb({ filename: "./databases/menu.db", autoload: true });
 db.users = new nedb({ filename: "./databases/users.db", autoload: true });
@@ -27,15 +28,15 @@ app.get("/api/menu", async (req, res) => {
   }
 });
 
-app.post("/api/order", async (req, res) => {
-  // Middleware för auth
-  //Om inloggad få med userId
+app.post("/api/order", priceCheck, async (req, res) => {
+  // Middleware för auth skickar med userId och isLoggedIn: true
+  // Om inloggad få med userId
+  // Middleware för att kolla att priserna stämmer --------------------------------------------
   
-  const { productName, price, quantity, userId } = req.body;
+  const { products, userId } = req.body;
   const order = {
-    productName: productName,
-    price: price,
-    quantity: quantity,
+    products: products,
+    totalPrice: res.locals.totalPrice,
     orderNr: uuid(),
     orderTime: new Date(),
     deliveryTime: new Date(this.orderTime.getTime() + 20*60000) // 20 minutes from order time
