@@ -1,11 +1,11 @@
-const db = require('../app');
+const { ordersDb } = require('../app');
 
 async function orderStatus(req, res, next) {
-    const orderId = req.params.orderid;
-    
+    const orderId = req.params.ordernr;
+    console.log('order ID', orderId);
     try {
-      const order = await db.orders.findOne({ orderId });
-      
+      const order = await ordersDb.findOne({ orderNr: orderId });
+      console.log('order------------------------------', order);
       if (order) {
         const currentTime = new Date();
         const timeLeftInMilliseconds = order.deliveryTime - currentTime;
@@ -21,7 +21,7 @@ async function orderStatus(req, res, next) {
         .status(500)
         .json({
           success: false,
-          message: "Error occurred while getting status of order",
+          message: "Error occurred in orderStatus function",
           code: err.code,
         });
     }

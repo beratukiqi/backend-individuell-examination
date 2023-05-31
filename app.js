@@ -3,19 +3,61 @@ const app = express();
 const nedb = require("nedb-promise");
 const { uuid } = require("uuidv4");
 const { orderStatus } = require('./middlewares/orderStatus');
-const { priceCheck } = require('./middlewares/priceCheck');
-const db = {};
-db.menu = new nedb({ filename: "./databases/menu.db", autoload: true });
-db.users = new nedb({ filename: "./databases/users.db", autoload: true });
-db.orders = new nedb({ filename: "./databases/orders.db", autoload: true });
+// const { priceCheck } = require('./middlewares/priceCheck');
+menuDb = new nedb({ filename: "./databases/menu.db", autoload: true });
+usersDb = new nedb({ filename: "./databases/users.db", autoload: true });
+ordersDb = new nedb({ filename: "./databases/orders.db", autoload: true });
 
 const port = 5000;
 
 app.use(express.json());
 
+async function priceCheck(req, res, next) {
+    const products = req.body;
+  
+    //Insomnia body
+  //   [
+  //     {
+  //       productName,
+  //       productId, _id från menu skickas till insomnia
+  //       price,
+  //       quantity,
+  //     },
+  //   ];
+  
+    let totalPrice = 0;
+    for (let product of products) {
+      const coffee = await menuDb.find({ _id: product.productId });
+      
+        for (let c of coffee) {
+            if (
+                c.price === product.price &&
+                c._id === product.productId
+              ) {
+                let quantitySum = product.quantity * product.price;
+                totalPrice += quantitySum;
+              }
+        }
+    }
+    console.log('TotalPrice', totalPrice);
+    res.locals.totalPrice = totalPrice;
+    res.locals.products = products;
+    next();
+  }
+
+
+// menuDb.insert({"title":"Latte Macchiato","desc":"Bryggd på månadens bönor.","price":49});
+// menuDb.insert({"title":"Bryggkaffe","desc":"Bryggd på månadens bönor.","price":39});
+// menuDb.insert({"title":"Gustav Adolfsbakelse","desc":"En kunglig bakelse.","price":50});
+// menuDb.insert({"title":"Semla","desc":"En fastlagsbulle i sin rätta form.","price":50});
+// menuDb.insert({"title":"Kaffe Latte","desc":"Bryggd på månadens bönor.","price":54});
+// menuDb.insert({"title":"Cortado","desc":"Bryggd på månadens bönor.","price":39});
+// menuDb.insert({"title":"Caffè Doppio","desc":"Bryggd på månadens bönor.","price":49});
+// menuDb.insert({"title":"Cappuccino","desc":"Bryggd på månadens bönor.","price":49});
+
 app.get("/api/menu", async (req, res) => {
   try {
-    const docs = await db.menu.find({});
+    const docs = await menuDb.find({});
     res.status(200).json({ success: true, data: docs });
   } catch (err) {
     res
@@ -28,30 +70,32 @@ app.get("/api/menu", async (req, res) => {
   }
 });
 
-app.post("/api/order", priceCheck, async (req, res) => {
+app.post("/api/order/:id", priceCheck, async (req, res) => {
   // Middleware för auth skickar med userId och isLoggedIn: true
   // Om inloggad få med userId
   // Middleware för att kolla att priserna stämmer --------------------------------------------
   
-  const { products, userId } = req.body;
+  const userId = req.params;
+  let products = res.locals.products;
+  let orderTime = new Date();
   const order = {
     products: products,
     totalPrice: res.locals.totalPrice,
     orderNr: uuid(),
-    orderTime: new Date(),
-    deliveryTime: new Date(this.orderTime.getTime() + 20*60000) // 20 minutes from order time
+    orderTime: orderTime,
+    deliveryTime: new Date(orderTime.getTime() + 20 * 60000) // 20 minutes from order time
   };
 
   if (userId) {
     order.userId = userId;
   }
   try {
-    await db.orders.insert(order);
+    await ordersDb.insert(order);
     res.json({
       success: true,
       message: "Order placed successfully",
       eta: 20,
-      orderNr: order.orderNr,
+      orderNr: order.orderNr
     });
   } catch (err) {
     res
@@ -72,7 +116,7 @@ app.post("/api/user/signup", async (req, res) => {
     userId: uuid(),
   };
   try {
-    const newUser = await db.users.insert(user);
+    const newUser = await usersDb.insert(user);
     res.status(200).json({ success: true });
   } catch (err) {
     res
@@ -118,7 +162,7 @@ app.get("/api/user/:id/history", async (req, res) => {
   }
 });
 
-app.get("/api/order/status/:orderid", orderStatus, async (req, res) => {
+app.get("/api/order/status/:ordernr", orderStatus, async (req, res) => {
   // Middleware som räknar ut hur många min kvar returnerar timeLeft
   try {
     res.json({ success: true, timeLeft: res.locals.timeLeft });
@@ -138,4 +182,4 @@ app.listen(port, () => {
 });
 
 
-module.exports = { db }
+module.exports = { menuDb, ordersDb, usersDb }
