@@ -11,7 +11,7 @@ const {
 } = require("./middlewares/auth");
 // const { priceCheck } = require('./middlewares/priceCheck');
 menuDb = new nedb({ filename: "./databases/menu.db", autoload: true });
-usersDb = new nedb({ filename: "./databases/users.db", autoload: true });
+// usersDb = new nedb({ filename: "./databases/users.db", autoload: true });
 ordersDb = new nedb({ filename: "./databases/orders.db", autoload: true });
 
 const port = 5000;

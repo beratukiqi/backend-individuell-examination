@@ -1,9 +1,8 @@
-const { usersDb } = require("../app");
+const { getAllUsers } = require('../models/users');
 
 async function checkUsernameAvailabilitiy(req, res, next) {
     const { username, password } = req.body;
-
-    const usersList = await usersDb.find({});
+    const usersList = await getAllUsers();
     const matchedUser = usersList.find((user) => user.username === username);
 
     if (username.length > 3) {
@@ -39,7 +38,7 @@ async function checkPasswordSecurity(req, res, next) {
 
 async function checkUsernameMatch(req, res, next) {
     const { username, password } = req.body;
-    const usersList = await usersDb.find({});
+    const usersList = await getAllUsers();
     const matchedUser = usersList.find((user) => user.username === username);
     if (matchedUser) {
         next();
@@ -54,7 +53,7 @@ async function checkUsernameMatch(req, res, next) {
 
 async function checkPasswordMatch(req, res, next) {
     const { username, password } = req.body;
-    const usersList = await usersDb.find({});
+    const usersList = await getAllUsers();
     const matchedUser = usersList.find((user) => user.username === username);
     if (matchedUser.password === password) {
         next();
