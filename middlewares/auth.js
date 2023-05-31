@@ -1,24 +1,25 @@
 const { usersDb } = require("../app");
+
 async function checkUsernameAvailabilitiy(req, res, next) {
     const { username, password } = req.body;
 
-    const usersList = usersDb.find({}, (err, usersList) => {
-        if (err) {
-            console.log(err);
-        } else {
-            // Do something with the usersList
-        }
-    });
+    const usersList = await usersDb.find({});
     const matchedUser = usersList.find((user) => user.username === username);
 
-    if (!matchedUser) {
-        k;
-        next();
+    if (username.length > 3) {
+        if (!matchedUser) {
+            next();
+        } else {
+            res.json({
+                success: false,
+                usernameTaken: true,
+                message: "Username is already taken, try another username!",
+            });
+        }
     } else {
         res.json({
             success: false,
-            usernameTaken: true,
-            message: "Username is already taken, try another username!",
+            message: "Username not long enough, minimum 3 characters required",
         });
     }
 }
