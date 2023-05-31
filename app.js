@@ -3,6 +3,8 @@ const app = express();
 const nedb = require("nedb-promise");
 const { uuid } = require("uuidv4");
 const { orderStatus } = require("./middlewares/orderStatus");
+const { saveToOrders, findOrderByUserId } = require('./models/orders');
+const { getAllMenuItems } = require('./models/menu');
 const {
   checkUsernameMatch,
   checkPasswordMatch,
@@ -10,9 +12,9 @@ const {
   checkPasswordSecurity,
 } = require("./middlewares/auth");
 // const { priceCheck } = require('./middlewares/priceCheck');
-menuDb = new nedb({ filename: "./databases/menu.db", autoload: true });
+// menuDb = new nedb({ filename: "./databases/menu.db", autoload: true });
 // usersDb = new nedb({ filename: "./databases/users.db", autoload: true });
-ordersDb = new nedb({ filename: "./databases/orders.db", autoload: true });
+// ordersDb = new nedb({ filename: "./databases/orders.db", autoload: true });
 
 const port = 5000;
 
@@ -20,7 +22,7 @@ app.use(express.json());
 
 async function checkProducts(req, res, next) {
   let isFaild = false;
-  const menu = await menuDb.find({});
+  const menu = await getAllMenuItems();
   const orderProducts = req.body.products;
 
   if (orderProducts !== undefined) {
@@ -86,7 +88,7 @@ async function calculateTotalPrice(req, res, next) {
 
 app.get("/api/menu", async (req, res) => {
   try {
-    const docs = await menuDb.find({});
+    const docs = await getAllMenuItems();
     res.status(200).json({ success: true, data: docs });
   } catch (err) {
     res.status(500).json({
@@ -117,7 +119,7 @@ app.post("/api/order/:id", checkProducts, calculateTotalPrice, async (req, res) 
   }
   try {
     if (order) {
-      await ordersDb.insert(order);
+      await saveToOrders(order);
     }
     res.json({
       success: true,
@@ -183,7 +185,7 @@ app.get("/api/user/:id/history", async (req, res) => {
 
   const userId = req.params.id;
   try {
-    const orders = await db.orders.find({ userId });
+    const orders = await findOrderByUserId(userId);
     res.json({ success: true, orderHistory: orders });
   } catch (err) {
     res.status(500).json({
