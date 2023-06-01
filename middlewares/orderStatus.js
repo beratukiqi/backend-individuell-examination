@@ -1,11 +1,9 @@
-const { ordersDb } = require("../app");
+const { findOrderByOrderNr } = require("../models/orders");
 
 async function orderStatus(req, res, next) {
-    const orderId = req.params.ordernr;
-    console.log("order ID", orderId);
+    const orderNr = req.params.ordernr;
     try {
-        const order = await ordersDb.findOne({ orderNr: orderId });
-        console.log("order------------------------------", order);
+        const order = await findOrderByOrderNr(orderNr);
         if (order) {
             const currentTime = new Date();
             const timeLeftInMilliseconds = order.deliveryTime - currentTime;

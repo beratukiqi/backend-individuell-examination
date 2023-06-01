@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-const nedb = require("nedb-promise");
 const { uuid } = require("uuidv4");
 const { orderStatus } = require("./middlewares/orderStatus");
 const { saveToOrders, findOrderByUserId } = require('./models/orders');
@@ -11,71 +10,14 @@ const {
   checkUsernameAvailabilitiy,
   checkPasswordSecurity,
 } = require("./middlewares/auth");
-// const { priceCheck } = require('./middlewares/priceCheck');
-// menuDb = new nedb({ filename: "./databases/menu.db", autoload: true });
-// usersDb = new nedb({ filename: "./databases/users.db", autoload: true });
-// ordersDb = new nedb({ filename: "./databases/orders.db", autoload: true });
+const { checkProducts } = require("./middlewares/checkProducts");
+const { calculateTotalPrice } = require("./middlewares/calculateTotalPrice");
+const { createUser } = require("./models/users");
 
 const port = 5000;
 
 app.use(express.json());
 
-async function checkProducts(req, res, next) {
-  let isFaild = false;
-  const menu = await getAllMenuItems();
-  const orderProducts = req.body.products;
-
-  if (orderProducts !== undefined) {
-    orderProducts.forEach((orderProduct) => {
-      menu.forEach((menuItem) => {
-        if (orderProduct.productId === menuItem._id) {
-          isFaild = true;
-        }
-      });
-    });
-    if (!isFaild) {
-      next();
-    } else {
-      res.json({
-        success: false,
-        message: "One of your products does not exist in our menu",
-      });
-    }
-  } else {
-    res.json({ success: false, message: "No products in your order" });
-  }
-}
-
-async function calculateTotalPrice(req, res, next) {
-  const products = req.body.products;
-  console.log("Products", products);
-  //Insomnia body
-  //   [
-  //     {
-  //       productName,
-  //       productId, _id från menu skickas till insomnia
-  //       price,
-  //       quantity,
-  //     },
-  //   ];
-
-  let totalPrice = 0;
-
-  for (let product of products) {
-    const coffee = await menuDb.find({ _id: product.productId });
-
-    for (let c of coffee) {
-      if (c.price === product.price && c._id === product.productId) {
-        let quantitySum = product.quantity * product.price;
-        totalPrice += quantitySum;
-      }
-    }
-  }
-  console.log("TotalPrice", totalPrice);
-  res.locals.totalPrice = totalPrice;
-  res.locals.products = products;
-  next();
-}
 
 // menuDb.insert({"title":"Latte Macchiato","desc":"Bryggd på månadens bönor.","price":49});
 // menuDb.insert({"title":"Bryggkaffe","desc":"Bryggd på månadens bönor.","price":39});
@@ -148,7 +90,7 @@ app.post(
       userId: uuid(),
     };
     try {
-      const newUser = await usersDb.insert(user);
+      await createUser(user);
       res.status(200).json({ success: true });
     } catch (err) {
       res.status(500).json({
@@ -165,10 +107,8 @@ app.post(
   checkUsernameMatch,
   checkPasswordMatch,
   async (req, res) => {
-    // Middleware för auth return userId
-    const { username, password, user } = req.body;
+    const { user } = req.body;
     try {
-      // Vad skickar man med när anv skickas in? Behöver man try efter middleware som gör validering?
       res.json({ success: true, user: user });
     } catch (err) {
       res.status(500).json({
@@ -182,6 +122,7 @@ app.post(
 
 app.get("/api/user/:id/history", async (req, res) => {
   // Funkar inte. Idn som är inlagd på ordern blir ett objekt med key/value. Ska vara direkt ID.
+  // Gör denna!!
 
   const userId = req.params.id;
   try {
@@ -213,4 +154,3 @@ app.listen(port, () => {
   console.log("Server listening on " + port);
 });
 
-module.exports = { menuDb, ordersDb, usersDb };

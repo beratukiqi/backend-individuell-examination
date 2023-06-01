@@ -9,4 +9,8 @@ async function findOrderByUserId(userId) {
     return await ordersDb.find({ userId: userId });
 }
 
-module.exports = { saveToOrders, findOrderByUserId }
+async function findOrderByOrderNr(orderNr) {
+    return await ordersDb.findOne({ orderNr: orderNr });
+}
+
+module.exports = { saveToOrders, findOrderByUserId, findOrderByOrderNr }
