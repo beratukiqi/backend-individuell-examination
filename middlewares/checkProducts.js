@@ -1,25 +1,15 @@
 const { getAllMenuItems } = require("../models/menu");
 
 async function checkProducts(req, res, next) {
-    let matchCount = 0;
     const menu = await getAllMenuItems();
     const orderProducts = req.body.products;
 
-    if (orderProducts !== undefined) {
-        // Kollar så det inte är undefined
-        orderProducts.forEach((orderProduct) => {
-            // Varje order produkt
+    if (orderProducts) {
+        const allProductsExist = orderProducts.every((product) =>
+            menu.find((menuItem) => menuItem._id === product._id)
+        );
 
-            menu.forEach((menuItem) => {
-                // Varje meny item
-                if (orderProduct._id === menuItem._id) {
-                    // Matchar det?
-                    matchCount++;
-                }
-            });
-        });
-
-        if (matchCount === orderProducts.length) {
+        if (allProductsExist) {
             next();
         } else {
             res.json({

@@ -1,13 +1,13 @@
 const { getAllUsers } = require("../models/users");
 
-// Till signup
+// For signup
 async function checkUsernameAvailabilitiy(req, res, next) {
-    const { username, password } = req.body;
+    const { username } = req.body;
     const usersList = await getAllUsers();
-    const matchedUser = usersList.find((user) => user.username === username);
+    const usernameTaken = usersList.find((user) => user.username === username);
 
     if (username.length >= 3) {
-        if (!matchedUser) {
+        if (!usernameTaken) {
             next();
         } else {
             res.json({
@@ -24,9 +24,9 @@ async function checkUsernameAvailabilitiy(req, res, next) {
     }
 }
 
-// Till singup
+// For signup
 async function checkPasswordSecurity(req, res, next) {
-    const { username, password } = req.body;
+    const { password } = req.body;
 
     if (password.length >= 8) {
         next();
@@ -38,7 +38,7 @@ async function checkPasswordSecurity(req, res, next) {
     }
 }
 
-// Till Login
+// For Login
 async function checkUsernameMatch(req, res, next) {
     const { username } = req.body;
     const usersList = await getAllUsers();
@@ -53,7 +53,7 @@ async function checkUsernameMatch(req, res, next) {
     }
 }
 
-// Till login
+// For login
 async function checkPasswordMatch(req, res, next) {
     const { username, password } = req.body;
     const usersList = await getAllUsers();

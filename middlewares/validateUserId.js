@@ -4,7 +4,8 @@ async function validateUserId(req, res, next) {
     const userId = req.params.userId;
     const user = await findUserById(userId);
 
-    if (user) {
+    if (user || userId === "guest") {
+        // Only users in usersDb or guests pass this check
         next();
     } else {
         res.status(404).json({
