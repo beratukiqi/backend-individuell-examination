@@ -1,11 +1,12 @@
-const { getAllUsers } = require('../models/users');
+const { getAllUsers } = require("../models/users");
 
+// Till signup
 async function checkUsernameAvailabilitiy(req, res, next) {
     const { username, password } = req.body;
     const usersList = await getAllUsers();
     const matchedUser = usersList.find((user) => user.username === username);
 
-    if (username.length > 3) {
+    if (username.length >= 3) {
         if (!matchedUser) {
             next();
         } else {
@@ -23,10 +24,11 @@ async function checkUsernameAvailabilitiy(req, res, next) {
     }
 }
 
+// Till singup
 async function checkPasswordSecurity(req, res, next) {
     const { username, password } = req.body;
 
-    if (password.length > 8) {
+    if (password.length >= 8) {
         next();
     } else {
         res.json({
@@ -36,6 +38,7 @@ async function checkPasswordSecurity(req, res, next) {
     }
 }
 
+// Till Login
 async function checkUsernameMatch(req, res, next) {
     const { username, password } = req.body;
     const usersList = await getAllUsers();
@@ -45,12 +48,12 @@ async function checkUsernameMatch(req, res, next) {
     } else {
         res.json({
             success: false,
-            usernameTaken: true,
             message: "We have nobody with that username registered here.",
         });
     }
 }
 
+// Till login
 async function checkPasswordMatch(req, res, next) {
     const { username, password } = req.body;
     const usersList = await getAllUsers();
