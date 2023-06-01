@@ -9,4 +9,8 @@ async function createUser(user) {
     return await usersDb.insert(user);
 }
 
-module.exports = { getAllUsers, createUser }
+async function findUserById(userId) {
+    return await usersDb.findOne({ userId });
+}
+
+module.exports = { getAllUsers, createUser, findUserById };

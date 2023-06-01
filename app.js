@@ -12,7 +12,8 @@ const {
 } = require("./middlewares/auth");
 const { checkProducts } = require("./middlewares/checkProducts");
 const { calculateTotalPrice } = require("./middlewares/calculateTotalPrice");
-const { createUser } = require("./models/users");
+const { createUser, findUserById } = require("./models/users");
+const { validateUserId } = require("./middlewares/validateUserId");
 
 const port = 5000;
 
@@ -127,13 +128,20 @@ app.post(
     }
 );
 
-app.get("/api/user/:userId/history", async (req, res) => {
-    // Middle- Kolla att användaren finns.
-
+app.get("/api/user/:userId/history", validateUserId, async (req, res) => {
     const userId = req.params.userId;
+    const user = await findUserById(userId);
+
     try {
-        const orders = await findOrdersByUserId(userId);
-        res.json({ success: true, orderHistory: orders });
+        if (user) {
+            const orders = await findOrdersByUserId(userId);
+            res.json({ success: true, orderHistory: orders });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
     } catch (err) {
         res.status(500).json({
             success: false,
