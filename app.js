@@ -4,13 +4,16 @@ const {
     checkUsernameAvailabilitiy,
     checkPasswordSecurity,
 } = require("./middlewares/auth");
+const {
+    validateUserId,
+    validateUserIdOrGuest,
+} = require("./middlewares/validateUser");
 const { checkProducts } = require("./middlewares/checkProducts");
-const { validateUserId } = require("./middlewares/validateUserId");
 const { validateOrderNr } = require("./middlewares/validateOrderNr");
 const { calcDeliveryTime } = require("./middlewares/calcDeliveryTime");
 const { calculateTotalPrice } = require("./middlewares/calculateTotalPrice");
-const { getAllMenuItems } = require("./models/menu");
 const { createUser } = require("./models/users");
+const { getAllMenuItems } = require("./models/menu");
 const { saveToOrders, findOrdersByUserId } = require("./models/orders");
 const { uuid } = require("uuidv4");
 const express = require("express");
@@ -34,7 +37,7 @@ app.get("/api/menu", async (req, res) => {
 
 app.post(
     "/api/order/:userId",
-    validateUserId,
+    validateUserIdOrGuest,
     checkProducts,
     calculateTotalPrice,
     async (req, res) => {

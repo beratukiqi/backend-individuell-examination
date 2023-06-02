@@ -4,6 +4,20 @@ async function validateUserId(req, res, next) {
     const userId = req.params.userId;
     const user = await findUserById(userId);
 
+    if (user) {
+        next();
+    } else {
+        res.status(404).json({
+            success: false,
+            message: "User not found",
+        });
+    }
+}
+
+async function validateUserIdOrGuest(req, res, next) {
+    const userId = req.params.userId;
+    const user = await findUserById(userId);
+
     if (user || userId === "guest") {
         // Only users in usersDb or guests pass this check
         next();
@@ -15,4 +29,4 @@ async function validateUserId(req, res, next) {
     }
 }
 
-module.exports = { validateUserId };
+module.exports = { validateUserId, validateUserIdOrGuest };
