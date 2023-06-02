@@ -42,3 +42,6 @@ orderNr = a379dc28-c16e-410c-a578-4b08226c7307
 
 http://localhost:5000/api/order/status/{orderNr}
 ```
+
+## Created by:
+### Rickard, Martina, Charlotte, Berat
