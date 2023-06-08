@@ -27,6 +27,7 @@ const express = require("express");
 const { checkProductProps } = require("./middlewares/checkProductProps");
 const { validateEdit } = require("./middlewares/validateEdit");
 const { validateMenuById } = require("./middlewares/validateMenu.js");
+const { validatePrice } = require("./middlewares/validateDatatypes");
 const app = express();
 
 const port = 5000;
@@ -162,14 +163,14 @@ app.listen(port, () => {
 // Routes below are added for the individual exam
 
 app.post("/api/menu/add-new-product", checkProductProps, (req, res) => {
-    const { title, desc, price } = req.body;
-
+    const product = req.body;
+    product.createdAt = new Date();
     try {
-        addNewMenuItem({ title, desc, price });
+        addNewMenuItem(product);
 
         res.json({
             success: true,
-            message: `${title} has been added to the menu.`,
+            message: `${product.title} has been added to the menu.`,
         });
     } catch (error) {
         res.status(500).json({
@@ -220,21 +221,25 @@ app.delete("/api/menu/delete", validateMenuById, async (req, res) => {
     }
 });
 
-app.post("/api/deals/add-new-deal", async (req, res) => {
-    const deal = req.body;
-    // kolla så att varje produkt finns i menu
+app.post(
+    "/api/deals/add-new-deal",
+    checkProducts,
+    validatePrice,
+    async (req, res) => {
+        const deal = req.body;
 
-    try {
-        await addNewDeal(deal);
-        res.json({
-            success: true,
-            message: "Successfully added the deal",
-        });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Error occurred while adding a deal",
-            code: err.code,
-        });
+        try {
+            await addNewDeal(deal);
+            res.json({
+                success: true,
+                message: "Successfully added the deal",
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: "Error occurred while adding a deal",
+                code: err.code,
+            });
+        }
     }
-});
+);

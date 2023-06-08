@@ -18,7 +18,7 @@ async function checkProducts(req, res, next) {
             });
         }
     } else {
-        res.json({ success: false, message: "No products in your order" });
+        res.json({ success: false, message: "Need a product, recieved none" });
     }
 }
 
