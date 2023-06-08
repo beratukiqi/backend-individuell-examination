@@ -13,10 +13,20 @@ const { validateOrderNr } = require("./middlewares/validateOrderNr");
 const { calcDeliveryTime } = require("./middlewares/calcDeliveryTime");
 const { calculateTotalPrice } = require("./middlewares/calculateTotalPrice");
 const { createUser } = require("./models/users");
-const { getAllMenuItems } = require("./models/menu");
+const { addNewDeal } = require("./models/deals");
+const {
+    getAllMenuItems,
+    addNewMenuItem,
+    findMenuItemById,
+    updateMenuItem,
+    deleteMenuItem,
+} = require("./models/menu");
 const { saveToOrders, findOrdersByUserId } = require("./models/orders");
 const { uuid } = require("uuidv4");
 const express = require("express");
+const { checkProductProps } = require("./middlewares/checkProductProps");
+const { validateEdit } = require("./middlewares/validateEdit");
+const { validateMenuById } = require("./middlewares/validateMenu.js");
 const app = express();
 
 const port = 5000;
@@ -72,6 +82,7 @@ app.post(
     "/api/user/signup",
     checkUsernameAvailabilitiy,
     checkPasswordSecurity,
+    // Bcrypt middleware here <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     async (req, res) => {
         try {
             const user = {
@@ -146,4 +157,84 @@ app.get(
 
 app.listen(port, () => {
     console.log("Server listening on " + port);
+});
+
+// Routes below are added for the individual exam
+
+app.post("/api/menu/add-new-product", checkProductProps, (req, res) => {
+    const { title, desc, price } = req.body;
+
+    try {
+        addNewMenuItem({ title, desc, price });
+
+        res.json({
+            success: true,
+            message: `${title} has been added to the menu.`,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error occurred while adding a new product to the menu",
+            code: err.code,
+        });
+    }
+});
+
+app.put("/api/menu/edit/:productID", validateEdit, async (req, res) => {
+    const productID = req.params.productID;
+    s;
+    const changes = req.body;
+    changes.modifiedAt = new Date();
+
+    try {
+        await updateMenuItem(productID, changes);
+        res.json({
+            success: true,
+            message: "Successfully updated the menu item",
+            modifiedAt: changes.modifiedAt,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error occurred while updating a menu item",
+            code: err.code,
+        });
+    }
+});
+
+app.delete("/api/menu/delete", validateMenuById, async (req, res) => {
+    const productID = req.body.id;
+
+    try {
+        deleteMenuItem(productID);
+        res.json({
+            success: true,
+            message: "Successfully deleted the menu item",
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Error occurred while deleting a menu item",
+            code: err.code,
+        });
+    }
+});
+
+app.post("/api/deals/add-new-deal", async (req, res) => {
+    const deal = req.body;
+    // kolla så att varje produkt finns i menu
+
+    try {
+        await addNewDeal(deal);
+        res.json({
+            success: true,
+            message: "Successfully added the deal",
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Error occurred while adding a deal",
+            code: err.code,
+        });
+    }
 });
