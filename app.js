@@ -3,6 +3,8 @@ const {
     checkPasswordMatch,
     checkUsernameAvailabilitiy,
     checkPasswordSecurity,
+    checkToken,
+    checkAdminPermission,
 } = require("./middlewares/auth");
 const {
     validateUserId,
@@ -29,7 +31,8 @@ const { validateEdit } = require("./middlewares/validateEdit");
 const { validateMenuById } = require("./middlewares/validateMenu.js");
 const { validatePrice } = require("./middlewares/validateDatatypes");
 const app = express();
-
+const jwt = require("jsonwebtoken");
+const { hashPassword } = require("./bcrypt");
 const port = 5000;
 
 app.use(express.json());
@@ -83,12 +86,13 @@ app.post(
     "/api/user/signup",
     checkUsernameAvailabilitiy,
     checkPasswordSecurity,
-    // Bcrypt middleware here <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     async (req, res) => {
         try {
+            const hash = await hashPassword(req.body.password);
+
             const user = {
                 username: req.body.username,
-                password: req.body.password,
+                password: hash,
                 userId: uuid(),
             };
             await createUser(user); // Adds user to database
@@ -109,12 +113,40 @@ app.post(
     checkPasswordMatch,
     async (req, res) => {
         try {
-            res.json({ success: true, isLoggedIn: true });
+            const token = jwt.sign(
+                { username: req.body.username, role: req.body.role },
+                "a1b1c1",
+                {
+                    expiresIn: 60000,
+                }
+            );
+            res.json({ success: true, isLoggedIn: true, token });
         } catch (err) {
             res.status(500).json({
                 success: false,
                 message: "Error occurred while logging in user",
                 error: err.code,
+            });
+        }
+    }
+);
+
+// Skriv kommentar här
+app.get(
+    "/api/user/my-account",
+    checkToken,
+    checkAdminPermission,
+    (req, res) => {
+        try {
+            res.json({
+                success: true,
+                user: res.locals.username,
+            });
+        } catch (err) {
+            req.json({
+                success: false,
+                message: "Error occured while attempting to get to my-account",
+                error: err,
             });
         }
     }
@@ -162,67 +194,89 @@ app.listen(port, () => {
 
 // Routes below are added for the individual exam
 
-app.post("/api/menu/add-new-product", checkProductProps, (req, res) => {
-    const product = req.body;
-    product.createdAt = new Date();
-    try {
-        addNewMenuItem(product);
+app.post(
+    "/api/menu/add-new-product",
+    checkToken,
+    checkAdminPermission,
+    checkProductProps,
+    (req, res) => {
+        const product = req.body;
+        product.createdAt = new Date();
+        try {
+            addNewMenuItem(product);
 
-        res.json({
-            success: true,
-            message: `${product.title} has been added to the menu.`,
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Error occurred while adding a new product to the menu",
-            code: err.code,
-        });
+            res.json({
+                success: true,
+                message: `${product.title} has been added to the menu.`,
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message:
+                    "Error occurred while adding a new product to the menu",
+                code: err.code,
+            });
+        }
     }
-});
+);
 
-app.put("/api/menu/edit/:productID", validateEdit, async (req, res) => {
-    const productID = req.params.productID;
-    s;
-    const changes = req.body;
-    changes.modifiedAt = new Date();
+app.put(
+    "/api/menu/edit/:productID",
+    checkToken,
+    checkAdminPermission,
+    validateEdit,
+    async (req, res) => {
+        // Validera att id finns <<<<<<<<<<<
+        const productID = req.params.productID;
 
-    try {
-        await updateMenuItem(productID, changes);
-        res.json({
-            success: true,
-            message: "Successfully updated the menu item",
-            modifiedAt: changes.modifiedAt,
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Error occurred while updating a menu item",
-            code: err.code,
-        });
+        const changes = req.body;
+        changes.modifiedAt = new Date();
+
+        try {
+            await updateMenuItem(productID, changes);
+            res.json({
+                success: true,
+                message: "Successfully updated the menu item",
+                modifiedAt: changes.modifiedAt,
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: "Error occurred while updating a menu item",
+                code: err.code,
+            });
+        }
     }
-});
+);
 
-app.delete("/api/menu/delete", validateMenuById, async (req, res) => {
-    const productID = req.body.id;
+app.delete(
+    "/api/menu/delete",
+    checkToken,
+    checkAdminPermission,
+    validateMenuById,
+    async (req, res) => {
+        const productID = req.body.id;
 
-    try {
-        deleteMenuItem(productID);
-        res.json({
-            success: true,
-            message: "Successfully deleted the menu item",
-        });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Error occurred while deleting a menu item",
-            code: err.code,
-        });
+        try {
+            deleteMenuItem(productID);
+            res.json({
+                success: true,
+                message: "Successfully deleted the menu item",
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: "Error occurred while deleting a menu item",
+                code: err.code,
+            });
+        }
     }
-});
+);
 
 app.post(
     "/api/deals/add-new-deal",
+    checkToken,
+    checkAdminPermission,
     checkProducts,
     validatePrice,
     async (req, res) => {

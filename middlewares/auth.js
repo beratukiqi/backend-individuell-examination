@@ -1,4 +1,6 @@
+const { comparePassword } = require("../bcrypt");
 const { getAllUsers } = require("../models/users");
+const jwt = require("jsonwebtoken");
 
 // For signup
 async function checkUsernameAvailabilitiy(req, res, next) {
@@ -58,7 +60,8 @@ async function checkPasswordMatch(req, res, next) {
     const { username, password } = req.body;
     const usersList = await getAllUsers();
     const matchedUser = usersList.find((user) => user.username === username);
-    if (matchedUser.password === password) {
+    const matchedPw = await comparePassword(password, matchedUser.password); // Bcrypt compare function
+    if (matchedPw) {
         next();
     } else {
         res.json({
@@ -69,9 +72,43 @@ async function checkPasswordMatch(req, res, next) {
     }
 }
 
+// Checks for correct JWT and also handles Admin / User roles.
+function checkToken(req, res, next) {
+    const token = req.headers.authorization.replace("Bearer ", "");
+
+    if (token) {
+        const data = jwt.verify(token, "a1b1c1");
+
+        res.locals.username = data.username;
+        next();
+    } else {
+        res.json({
+            success: false,
+            message: "Invalid token, you do not have permission",
+        });
+    }
+}
+
+function checkAdminPermission(req, res, next) {
+    const token = req.headers.authorization.replace("Bearer ", "");
+    const data = jwt.verify(token, "a1b1c1");
+
+    if (data.role === "admin") {
+        res.locals.role = data.role;
+        next();
+    } else {
+        res.json({
+            success: false,
+            message: "You do not have permission",
+        });
+    }
+}
+
 module.exports = {
     checkPasswordMatch,
     checkPasswordSecurity,
     checkUsernameAvailabilitiy,
     checkUsernameMatch,
+    checkToken,
+    checkAdminPermission,
 };
