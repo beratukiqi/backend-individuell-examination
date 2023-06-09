@@ -18,6 +18,8 @@ For regular user you exclude role in req.body
   "username": "Berat",
   "password": "12345678",
 }
+```
+
 _____________________________
 
 ### Add menu item
