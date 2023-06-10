@@ -1,47 +1,68 @@
-# space-knights-backend-exam
+# Backend individuell examination
 
+### Login to generate token:
+Two users are available - BeratAdmin & Berat. 
 
-### Login & Signup
+For admin user you must include role: admin in req.body
 ```
 {
-  "username": "Berat1234",
-  "password": "12345678"
+  "username": "BeratAdmin",
+  "password": "12345678",
+  "role": "admin"
 }
 ```
 
-### Place order :
+For regular user you exclude role in req.body
+```
+{
+  "username": "Berat",
+  "password": "12345678",
+}
+```
+
+_____________________________
+
+### Add menu item
+```
+{
+  "title": "YourNewProduct",
+  "desc": "Description",
+  "price": 1337
+}
+```
+
+### Update menu item :
+```
+// Any of the props 'title', 'desc', 'price' are editable
+{
+  "title": "EditedTitle",
+  "desc": "EditedDesc"
+  "price": 100,
+}
+
+// Or single properties
+{"price": 500}
+```
+
+### Delete menu item :
+```
+{"id": "pUnAP4GlkDVuXfwZ"}
+```
+
+### Add Deal
 ```
 {
   "products": [
     {
-      "_id": "srUZ3eapAit6anvI",
-      "title": "Latte Macchiato",
-      "price": 49,
-      "quantity": 3
+      "id": "9XQAPoarvCkRUhz2"
     },
     {
-      "_id": "jdhW6ClobWK7pXlL",
-      "title": "Caffè Doppio",
-      "price": 49,
-      "quantity": 2
+      "id": "Env7zeTHBxyW7W1z"
     }
-  ]
+  ],
+  "price": 55
 }
 ```
 
-### Order history
-```
-userId = c12664fc-2b73-4237-a35c-de47d49bed8e
-
-http://localhost:5000/api/user/{userId}/history
-```
-
-### Order status
-```
-orderNr = a379dc28-c16e-410c-a578-4b08226c7307
-
-http://localhost:5000/api/order/status/{orderNr}
-```
-
 ## Created by:
-### Rickard, Martina, Charlotte, Berat
+### Berat Ukiqi
