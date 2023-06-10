@@ -33,15 +33,19 @@ _____________________________
 
 ### Update menu item :
 ```
-// Any of the props 'title', 'desc', 'price' are editable
+// ID required + any of the props 'title', 'desc', 'price' are editable
 {
+  "id": "pUnAP4GlkDVuXfwZ",
   "title": "EditedTitle",
-  "desc": "EditedDesc"
-  "price": 100,
+  "desc": "EditedDesc",
+  "price": 100
 }
 
 // Or single properties
-{"price": 500}
+{
+  "id": "pUnAP4GlkDVuXfwZ",
+  "price": 500
+}
 ```
 
 ### Delete menu item :
