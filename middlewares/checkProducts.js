@@ -12,13 +12,16 @@ async function checkProducts(req, res, next) {
         if (allProductsExist) {
             next();
         } else {
-            res.json({
+            res.status(404).json({
                 success: false,
                 message: "One of your products does not exist in our menu",
             });
         }
     } else {
-        res.json({ success: false, message: "Need a product, recieved none" });
+        res.status(404).json({
+            success: false,
+            message: "Need a product, recieved none",
+        });
     }
 }
 

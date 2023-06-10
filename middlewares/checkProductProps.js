@@ -7,22 +7,22 @@ function checkProductProps(req, res, next) {
     if (hasTitle && hasDesc && hasPrice) {
         next();
     } else if (!hasTitle) {
-        res.json({
+        res.status(406).json({
             success: false,
             message: "Invalid title",
         });
     } else if (!hasDesc) {
-        res.json({
+        res.status(406).json({
             success: false,
             message: "Invalid description",
         });
     } else if (!hasPrice) {
-        res.json({
+        res.status(406).json({
             success: false,
             message: "Invalid price",
         });
     } else {
-        res.json({
+        res.status(406).json({
             success: false,
             message: "Product is invalid",
         });

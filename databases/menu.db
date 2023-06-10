@@ -1,4 +1,4 @@
-{"title":"Latest Coffee","desc":"Bryggd på månadens bönor.","price":5,"_id":"9XQAPoarvCkRUhz2","modifiedAt":{"$$date":1686349465189}}
+{"title":"Latest Coffee","desc":"Bryggd på månadens bönor.","price":5,"_id":"9XQAPoarvCkRUhz2","modifiedAt":{"$$date":1686351260731}}
 {"title":"Cortado","desc":"Bryggd på månadens bönor.","price":39,"_id":"Env7zeTHBxyW7W1z"}
 {"title":"Cappuccino","desc":"Bryggd på månadens bönor.","price":49,"_id":"XOgx0eJtJHYnBpzt"}
 {"title":"Semla","desc":"En fastlagsbulle i sin rätta form.","price":50,"_id":"bH7DC60FtvAgWoXn"}
@@ -6,5 +6,6 @@
 {"title":"Bryggkaffe","desc":"Bryggd på månadens bönor.","price":39,"_id":"cw01DxvL60yTApq5"}
 {"title":"Gustav Adolfsbakelse","desc":"En kunglig bakelse.","price":50,"_id":"dkYIjhT9nZhYnT6H"}
 {"title":"Caffè Doppio","desc":"Bryggd på månadens bönor.","price":49,"_id":"jdhW6ClobWK7pXlL"}
-{"title":"Berra","desc":"dddd","price":5,"createdAt":{"$$date":1686263975094},"_id":"pUnAP4GlkDVuXfwZ"}
+{"title":"EditedTitle","desc":"EditedDesc","price":100,"createdAt":{"$$date":1686263975094},"_id":"pUnAP4GlkDVuXfwZ","id":"pUnAP4GlkDVuXfwZ","modifiedAt":{"$$date":1686426384198}}
 {"title":"Latte Macchiato","desc":"Bryggd på månadens bönor.","price":49,"_id":"srUZ3eapAit6anvI"}
+{"title":"EditedTitle","desc":"EditedDesc","price":100,"createdAt":{"$$date":1686263975094},"_id":"pUnAP4GlkDVuXfwZ","id":"pUnAP4GlkDVuXfwZ","modifiedAt":{"$$date":1686426488654}}

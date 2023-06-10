@@ -12,14 +12,14 @@ async function checkUsernameAvailabilitiy(req, res, next) {
         if (!usernameTaken) {
             next();
         } else {
-            res.json({
+            res.status(409).json({
                 success: false,
                 usernameTaken: true,
                 message: "Username is already taken, try another username!",
             });
         }
     } else {
-        res.json({
+        res.status(406).json({
             success: false,
             message: "Username not long enough, minimum 3 characters required",
         });
@@ -33,7 +33,7 @@ async function checkPasswordSecurity(req, res, next) {
     if (password.length >= 8) {
         next();
     } else {
-        res.json({
+        res.status(406).json({
             success: false,
             message: "Password not long enough, minimum 8 characters required",
         });
@@ -48,7 +48,7 @@ async function checkUsernameMatch(req, res, next) {
     if (matchedUser) {
         next();
     } else {
-        res.json({
+        res.status(404).json({
             success: false,
             message: "We have nobody with that username registered here.",
         });
@@ -64,7 +64,7 @@ async function checkPasswordMatch(req, res, next) {
     if (matchedPw) {
         next();
     } else {
-        res.json({
+        res.status(401).json({
             success: false,
             correctPassword: false,
             message: "Incorrect password, try again!",
@@ -72,7 +72,7 @@ async function checkPasswordMatch(req, res, next) {
     }
 }
 
-// Checks for correct JWT and also handles Admin / User roles.
+// Checks for correct JWT
 function checkToken(req, res, next) {
     const token = req.headers.authorization.replace("Bearer ", "");
 
@@ -82,13 +82,14 @@ function checkToken(req, res, next) {
         res.locals.username = data.username;
         next();
     } else {
-        res.json({
+        res.status(401).json({
             success: false,
             message: "Invalid token, you do not have permission",
         });
     }
 }
 
+// Handles admin permission by getting the user role from JWT payload
 function checkAdminPermission(req, res, next) {
     const token = req.headers.authorization.replace("Bearer ", "");
     const data = jwt.verify(token, "a1b1c1");
@@ -97,9 +98,9 @@ function checkAdminPermission(req, res, next) {
         res.locals.role = data.role;
         next();
     } else {
-        res.json({
+        res.status(401).json({
             success: false,
-            message: "You do not have permission",
+            message: "You do not have admin permissions",
         });
     }
 }

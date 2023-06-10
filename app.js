@@ -10,44 +10,85 @@ const {
     validateUserId,
     validateUserIdOrGuest,
 } = require("./middlewares/validateUser");
+const { validateEdit } = require("./middlewares/validateEdit");
+const { validatePrice } = require("./middlewares/validateDatatypes");
 const { checkProducts } = require("./middlewares/checkProducts");
 const { validateOrderNr } = require("./middlewares/validateOrderNr");
+const { validateMenuById } = require("./middlewares/validateMenu.js");
 const { calcDeliveryTime } = require("./middlewares/calcDeliveryTime");
+const { checkProductProps } = require("./middlewares/checkProductProps");
 const { calculateTotalPrice } = require("./middlewares/calculateTotalPrice");
-const { createUser } = require("./models/users");
-const { addNewDeal } = require("./models/deals");
 const {
     getAllMenuItems,
     addNewMenuItem,
-    findMenuItemById,
     updateMenuItem,
     deleteMenuItem,
 } = require("./models/menu");
+const { createUser } = require("./models/users");
+const { addNewDeal } = require("./models/deals");
 const { saveToOrders, findOrdersByUserId } = require("./models/orders");
+const { hashPassword } = require("./bcrypt");
 const { uuid } = require("uuidv4");
 const express = require("express");
-const { checkProductProps } = require("./middlewares/checkProductProps");
-const { validateEdit } = require("./middlewares/validateEdit");
-const { validateMenuById } = require("./middlewares/validateMenu.js");
-const { validatePrice } = require("./middlewares/validateDatatypes");
-const app = express();
 const jwt = require("jsonwebtoken");
-const { hashPassword } = require("./bcrypt");
+const app = express();
 const port = 5000;
 
 app.use(express.json());
 
-app.get("/api/menu", async (req, res) => {
-    try {
-        res.status(200).json({ success: true, data: await getAllMenuItems() });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Could not fetch from database",
-            error: err.code,
-        });
-    }
+app.listen(port, () => {
+    console.log("Server listening on " + port);
 });
+
+app.post(
+    "/api/user/signup",
+    checkUsernameAvailabilitiy,
+    checkPasswordSecurity,
+    async (req, res) => {
+        try {
+            const hash = await hashPassword(req.body.password);
+
+            const user = {
+                username: req.body.username,
+                password: hash,
+                userId: uuid(),
+            };
+            await createUser(user); // Adds user to database
+            res.status(201).json({ success: true });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: "Error occurred while creating user",
+                error: err.code,
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/user/login",
+    checkUsernameMatch,
+    checkPasswordMatch,
+    async (req, res) => {
+        try {
+            // JWT added to user if login creds are correct
+            const token = jwt.sign(
+                { username: req.body.username, role: req.body.role },
+                "a1b1c1",
+                {
+                    expiresIn: 60000,
+                }
+            );
+            res.json({ success: true, isLoggedIn: true, token });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: "Error occurred while logging in user",
+                error: err.code,
+            });
+        }
+    }
+);
 
 app.post(
     "/api/order/:userId",
@@ -82,91 +123,6 @@ app.post(
     }
 );
 
-app.post(
-    "/api/user/signup",
-    checkUsernameAvailabilitiy,
-    checkPasswordSecurity,
-    async (req, res) => {
-        try {
-            const hash = await hashPassword(req.body.password);
-
-            const user = {
-                username: req.body.username,
-                password: hash,
-                userId: uuid(),
-            };
-            await createUser(user); // Adds user to database
-            res.status(201).json({ success: true });
-        } catch (err) {
-            res.status(500).json({
-                success: false,
-                message: "Error occurred while creating user",
-                error: err.code,
-            });
-        }
-    }
-);
-
-app.post(
-    "/api/user/login",
-    checkUsernameMatch,
-    checkPasswordMatch,
-    async (req, res) => {
-        try {
-            const token = jwt.sign(
-                { username: req.body.username, role: req.body.role },
-                "a1b1c1",
-                {
-                    expiresIn: 60000,
-                }
-            );
-            res.json({ success: true, isLoggedIn: true, token });
-        } catch (err) {
-            res.status(500).json({
-                success: false,
-                message: "Error occurred while logging in user",
-                error: err.code,
-            });
-        }
-    }
-);
-
-// Skriv kommentar här
-app.get(
-    "/api/user/my-account",
-    checkToken,
-    checkAdminPermission,
-    (req, res) => {
-        try {
-            res.json({
-                success: true,
-                user: res.locals.username,
-            });
-        } catch (err) {
-            req.json({
-                success: false,
-                message: "Error occured while attempting to get to my-account",
-                error: err,
-            });
-        }
-    }
-);
-
-app.get("/api/user/:userId/history", validateUserId, async (req, res) => {
-    const userId = req.params.userId;
-
-    try {
-        const orderHistory = await findOrdersByUserId(userId);
-        res.json({ success: true, orderHistory });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Error occurred while getting orderHistory",
-            error: err.code,
-        });
-    }
-});
-
 app.get(
     "/api/order/status/:ordernr",
     validateOrderNr,
@@ -188,10 +144,35 @@ app.get(
     }
 );
 
-app.listen(port, () => {
-    console.log("Server listening on " + port);
+app.get("/api/user/:userId/history", validateUserId, async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const orderHistory = await findOrdersByUserId(userId);
+        res.json({ success: true, orderHistory });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Error occurred while getting orderHistory",
+            error: err.code,
+        });
+    }
 });
 
+app.get("/api/menu", async (req, res) => {
+    try {
+        res.status(200).json({ success: true, data: await getAllMenuItems() });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Could not fetch from database",
+            error: err.code,
+        });
+    }
+});
+
+// Routes below are added for the individual exam
+// Routes below are added for the individual exam
 // Routes below are added for the individual exam
 
 app.post(
@@ -220,14 +201,40 @@ app.post(
     }
 );
 
-app.put(
-    "/api/menu/edit/:productID",
+app.post(
+    "/api/deals/add-new-deal",
     checkToken,
     checkAdminPermission,
-    validateEdit,
+    checkProducts,
+    validatePrice,
     async (req, res) => {
-        // Validera att id finns <<<<<<<<<<<
-        const productID = req.params.productID;
+        const deal = req.body;
+
+        try {
+            await addNewDeal(deal);
+            res.json({
+                success: true,
+                message: "Successfully added the deal",
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: "Error occurred while adding a deal",
+                code: err.code,
+            });
+        }
+    }
+);
+
+app.put(
+    "/api/menu/edit",
+    checkToken,
+    checkAdminPermission,
+    validateMenuById,
+    validateEdit,
+
+    async (req, res) => {
+        const productID = req.body.id;
 
         const changes = req.body;
         changes.modifiedAt = new Date();
@@ -267,31 +274,6 @@ app.delete(
             res.status(500).json({
                 success: false,
                 message: "Error occurred while deleting a menu item",
-                code: err.code,
-            });
-        }
-    }
-);
-
-app.post(
-    "/api/deals/add-new-deal",
-    checkToken,
-    checkAdminPermission,
-    checkProducts,
-    validatePrice,
-    async (req, res) => {
-        const deal = req.body;
-
-        try {
-            await addNewDeal(deal);
-            res.json({
-                success: true,
-                message: "Successfully added the deal",
-            });
-        } catch (err) {
-            res.status(500).json({
-                success: false,
-                message: "Error occurred while adding a deal",
                 code: err.code,
             });
         }

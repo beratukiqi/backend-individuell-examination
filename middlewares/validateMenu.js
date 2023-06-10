@@ -7,7 +7,7 @@ async function validateMenuById(req, res, next) {
     if (menuItem) {
         next();
     } else {
-        res.json({
+        res.status(404).json({
             success: false,
             message: "Your product ID does not exist in our menu",
         });
