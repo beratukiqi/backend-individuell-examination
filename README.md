@@ -31,6 +31,21 @@ _____________________________
 }
 ```
 
+### Add Deal
+```
+{
+  "products": [
+    {
+      "id": "9XQAPoarvCkRUhz2"
+    },
+    {
+      "id": "Env7zeTHBxyW7W1z"
+    }
+  ],
+  "price": 55
+}
+```
+
 ### Update menu item :
 ```
 // ID required + any of the props 'title', 'desc', 'price' are editable
@@ -53,20 +68,7 @@ _____________________________
 {"id": "pUnAP4GlkDVuXfwZ"}
 ```
 
-### Add Deal
-```
-{
-  "products": [
-    {
-      "id": "9XQAPoarvCkRUhz2"
-    },
-    {
-      "id": "Env7zeTHBxyW7W1z"
-    }
-  ],
-  "price": 55
-}
-```
+
 
 ## Created by:
 ### Berat Ukiqi
